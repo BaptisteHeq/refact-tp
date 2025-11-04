@@ -25,12 +25,21 @@ public class GestionPersonnel {
         if (opt.isEmpty()) return false;
 
         Employe ancien = opt.get();
-        Employe nouveau = EmployeFactory.creerEmploye(nouveauType, ancien.getNom(), ancien.getSalaireBase(), ancien.getExperience(), ancien.getDivision());
+        Employe nouveau = EmployeFactory.creerEmploye(
+                nouveauType,
+                ancien.getId(),
+                ancien.getNom(),
+                ancien.getSalaireBase(),
+                ancien.getExperience(),
+                ancien.getDivision()
+        );
+
         employes.remove(ancien);
         employes.add(nouveau);
         logs.add(LocalDateTime.now() + " - Promotion de " + ancien.getNom() + " vers " + nouveauType);
         return true;
     }
+
 
     public List<Employe> getEmployesParDivision(String division) {
         return employes.stream()
@@ -47,9 +56,13 @@ public class GestionPersonnel {
     }
 
     public Map<String, Long> rapportParDivision() {
-        return employes.stream()
-                .collect(Collectors.groupingBy(Employe::getDivision, Collectors.counting()));
+        Map<String, Long> rapport = new HashMap<>();
+        for (Employe e : employes) {
+            rapport.put(e.getDivision(), rapport.getOrDefault(e.getDivision(), 0L) + 1);
+        }
+        return rapport;
     }
+
 
     public List<String> getLogs() {
         return List.copyOf(logs);
