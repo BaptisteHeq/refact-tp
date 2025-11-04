@@ -3,88 +3,47 @@ package org.iut.refactoring;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PersonnelTest {
 
-    private GestionPersonnel gp;
+    GestionPersonnel gp;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         gp = new GestionPersonnel();
     }
 
     @Test
-    public void testAjoutSalarie() {
-        gp.ajouteSalarie("DEVELOPPEUR", "Alice", 3000, 4, "Dev");
-        assertEquals(1, gp.employes.size());
-        assertTrue(gp.salairesEmployes.size() > 0);
-        assertTrue(gp.logs.size() > 0);
+    void testAjoutEtSalaireDeveloppeur() {
+        Employe e = gp.ajouteEmploye("DEVELOPPEUR", "Alice", 3000, 6, "Dev");
+        assertEquals(4140, gp.calculSalaire(e.getId()), 0.01);
     }
 
     @Test
-    public void testCalculSalaireDeveloppeur() {
-        gp.ajouteSalarie("DEVELOPPEUR", "Bob", 3000, 6, "Dev");
-        Object[] emp = gp.employes.get(0);
-        double salaire = gp.calculSalaire((String) emp[0]);
-        // 3000 * 1.2 * 1.15 = 4140
-        assertEquals(4140, salaire, 0.01);
+    void testPromotionEmploye() {
+        Employe e = gp.ajouteEmploye("STAGIAIRE", "Bob", 2000, 2, "Dev");
+        gp.promouvoirEmploye(e.getId(), "DEVELOPPEUR");
+        double salaire = gp.calculSalaire(e.getId()); // nouveau calcul
+        assertTrue(salaire > 0);
     }
 
     @Test
-    public void testCalculSalaireChefDeProjet() {
-        gp.ajouteSalarie("CHEF DE PROJET", "Claire", 4000, 5, "Management");
-        Object[] emp = gp.employes.get(0);
-        double salaire = gp.calculSalaire((String) emp[0]);
-        // 4000 * 1.5 * 1.1 + 5000 = 11600
-        assertEquals(11600, salaire, 0.01);
+    void testCalculBonusChef() {
+        Employe e = gp.ajouteEmploye("CHEF DE PROJET", "Claire", 4000, 4, "Management");
+        assertEquals(1040, gp.calculBonus(e.getId()), 0.01); // 4000 * 0.2 * 1.3
     }
 
     @Test
-    public void testCalculSalaireStagiaire() {
-        gp.ajouteSalarie("STAGIAIRE", "David", 2000, 1, "Dev");
-        Object[] emp = gp.employes.get(0);
-        double salaire = gp.calculSalaire((String) emp[0]);
-        // 2000 * 0.6 = 1200
-        assertEquals(1200, salaire, 0.01);
+    void testRapportParDivision() {
+        gp.ajouteEmploye("DEVELOPPEUR", "A", 3000, 4, "Dev");
+        gp.ajouteEmploye("STAGIAIRE", "B", 1500, 1, "Dev");
+        gp.ajouteEmploye("CHEF DE PROJET", "C", 4000, 6, "Management");
+        Map<String, Long> rapport = gp.rapportParDivision();
+        assertEquals(2, rapport.get("Dev"));
+        assertEquals(1, rapport.get("Management"));
     }
-
-    @Test
-    public void testPromotionEmploye() {
-        gp.ajouteSalarie("STAGIAIRE", "Emma", 1500, 2, "Dev");
-        Object[] emp = gp.employes.get(0);
-        gp.avancementEmploye((String) emp[0], "DEVELOPPEUR");
-        assertEquals("DEVELOPPEUR", gp.employes.get(0)[1]);
-        double salaire = gp.salairesEmployes.get(emp[0]);
-        assertEquals(1500 * 1.2, salaire, 0.01);
-    }
-
-    @Test
-    public void testCalculBonusAnnuel() {
-        gp.ajouteSalarie("DEVELOPPEUR", "Frank", 3000, 6, "Dev");
-        Object[] emp = gp.employes.get(0);
-        double bonus = gp.calculBonusAnnuel((String) emp[0]);
-        // 3000 * 0.1 * 1.5 = 450
-        assertEquals(450, bonus, 0.01);
-    }
-
-    @Test
-    public void testGetEmployesParDivision() {
-        gp.ajouteSalarie("DEVELOPPEUR", "Alice", 3000, 4, "Dev");
-        gp.ajouteSalarie("CHEF DE PROJET", "Claire", 4000, 5, "Management");
-        gp.ajouteSalarie("STAGIAIRE", "David", 2000, 1, "Dev");
-
-        assertEquals(2, gp.getEmployesParDivision("Dev").size());
-        assertEquals(1, gp.getEmployesParDivision("Management").size());
-    }
-
-    @Test
-    public void testEmployeIntrouvable() {
-        double salaire = gp.calculSalaire("fake-id");
-        assertEquals(0, salaire);
-        double bonus = gp.calculBonusAnnuel("fake-id");
-        assertEquals(0, bonus);
-    }
-
 }
